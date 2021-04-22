@@ -1,12 +1,10 @@
-package sk.tuke.iam.demo;
+package sk.tuke.iam.demo.entity;
 
 public class User {
     private String userName;
-    private int age;
 
-    public User(String userName, int age) {
+    public User(String userName) {
         this.userName = userName;
-        this.age = age;
     }
 
     public String getUserName() {
@@ -16,13 +14,4 @@ public class User {
     public void setUserName(String userName) {
         this.userName = userName;
     }
-
-    public int getAge() {
-        return age;
-    }
-
-    public void setAge(int age) {
-        this.age = age;
-    }
-
 }

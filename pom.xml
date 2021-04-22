@@ -19,6 +19,12 @@
             <artifactId>neo4j-java-driver</artifactId>
             <version>4.2.1</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.arangodb</groupId>
+            <artifactId>arangodb-java-driver</artifactId>
+            <version>6.10.0</version>
+        </dependency>
     </dependencies>
 
 </project>
