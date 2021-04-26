@@ -4,6 +4,7 @@ import org.neo4j.driver.*;
 import org.neo4j.driver.Record;
 import sk.tuke.iam.demo.entity.Role;
 import sk.tuke.iam.demo.entity.User;
+import sk.tuke.iam.demo.entity.roleType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +35,7 @@ public class IAMServiceNeo4J implements IAMService, AutoCloseable{
         try (Session session = driver.session()){
             session.writeTransaction((TransactionWork<Void>) transaction -> {
                 transaction.run("CREATE (r:Role {role_name:$role_name})",
-                        parameters("role_name", role.getRoleName()));
+                        parameters("role_name", role.getRoleType().toString()));
                 return null;
             });
         }
@@ -58,7 +59,7 @@ public class IAMServiceNeo4J implements IAMService, AutoCloseable{
             session.writeTransaction((TransactionWork<Void>) transaction -> {
                 transaction.run("MATCH (r:Role {role_name:$role_name})" +
                                    "DETACH DELETE r",
-                        parameters("role_name",role.getRoleName()));
+                        parameters("role_name",role.getRoleType().toString()));
                 return null;
             });
         }
@@ -72,7 +73,7 @@ public class IAMServiceNeo4J implements IAMService, AutoCloseable{
                                 "MATCH (r:Role {role_name: $role_name}) " +
                                 "CREATE (p)-[:IS_MEMBER_OF]->(r)",
                         parameters( "user_name", user.getUserName(),
-                                "role_name", role.getRoleName() ) );
+                                "role_name", role.getRoleType().toString() ) );
                 return null;
             });
         }
@@ -85,7 +86,7 @@ public class IAMServiceNeo4J implements IAMService, AutoCloseable{
                 transaction.run("MATCH (u:User {user_name:$user_name})-[rel:IS_MEMBER_OF]->" +
                                 "(r:Role {role_name:$role_name})" +
                                 "DELETE rel",
-                        parameters("user_name",user.getUserName(),"role_name",role.getRoleName()));
+                        parameters("user_name",user.getUserName(),"role_name",role.getRoleType().toString()));
                 return null;
             });
         }
@@ -122,7 +123,7 @@ public class IAMServiceNeo4J implements IAMService, AutoCloseable{
 
         }
         if (record != null){
-            return new Role(record.get("r.role_name").asString());
+            return new Role(roleType.valueOf(record.get("r.role_name").asString()));
         }
         return null;
     }
@@ -161,7 +162,7 @@ public class IAMServiceNeo4J implements IAMService, AutoCloseable{
         }
         if (record != null){
             for (Record role : record){
-                rolesList.add(new Role(role.get("role_name").asString()));
+                rolesList.add(new Role(roleType.valueOf(role.get("role_name").asString())));
             }
         }
         return rolesList;

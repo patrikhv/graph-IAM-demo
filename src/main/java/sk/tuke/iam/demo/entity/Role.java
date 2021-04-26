@@ -3,19 +3,18 @@ package sk.tuke.iam.demo.entity;
 import java.util.Date;
 
 public class Role {
-    private String roleName;
+    private roleType roleType;
 
 
-    public Role(String name) {
-        this.roleName = name;
+    public Role(roleType roleType) {
+        this.roleType = roleType;
     }
 
-
-    public String getRoleName() {
-        return roleName;
+    public sk.tuke.iam.demo.entity.roleType getRoleType() {
+        return roleType;
     }
 
-    public void setRoleName(String roleName) {
-        this.roleName = roleName;
+    public void setRoleType(sk.tuke.iam.demo.entity.roleType roleType) {
+        this.roleType = roleType;
     }
 }
