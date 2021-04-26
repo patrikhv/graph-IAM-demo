@@ -17,4 +17,11 @@ public class Role {
     public void setRoleType(sk.tuke.iam.demo.entity.roleType roleType) {
         this.roleType = roleType;
     }
+
+    @Override
+    public String toString() {
+        return "Role{" +
+                "roleType=" + roleType +
+                '}';
+    }
 }

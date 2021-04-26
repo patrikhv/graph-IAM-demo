@@ -4,11 +4,9 @@ import com.arangodb.*;
 import com.arangodb.entity.*;
 import sk.tuke.iam.demo.entity.Role;
 import sk.tuke.iam.demo.entity.User;
+import sk.tuke.iam.demo.entity.roleType;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class IAMServiceArango implements IAMService, AutoCloseable{
 
@@ -116,17 +114,19 @@ public class IAMServiceArango implements IAMService, AutoCloseable{
                 System.out.println("Key: " + aDocument.getKey());
             });
         } catch (ArangoDBException e) {
-            System.err.println("4Failed to execute query. " + e.getMessage());
+            System.err.println("Failed to execute query. " + e.getMessage());
         }
     }
 
     @Override
     public void denyRole(User user, Role role) throws Exception {
+        String key = getUserRoleKey(user.getUserName(), role.getRoleType().toString());
+        if (key.length() == 0){
+            return;
+        }
         try {
-            String query = "REMOVE {_from: @from ,_to: @to} IN IS_MEMBER_OF";
-            Map<String, Object> bindVars = new HashMap<>();
-            bindVars.put("from", "user/" + user.getUserName().toLowerCase());
-            bindVars.put("to", "role/" + role.getRoleType().toString().toLowerCase());
+            String query = "REMOVE {_key: @key} IN IS_MEMBER_OF";
+            Map<String, Object> bindVars = Collections.singletonMap("key",key);
             ArangoCursor<BaseDocument> cursor = db.query(query, bindVars, null, BaseDocument.class);
             cursor.forEachRemaining(aDocument -> {
                 System.out.println("Key: " + aDocument.getKey());
@@ -138,31 +138,87 @@ public class IAMServiceArango implements IAMService, AutoCloseable{
 
     @Override
     public User getUserByName(String userName) throws Exception {
-        return null;
+        final User[] user = {null};
+        try {
+            String query = "FOR u IN user\n" +
+                    "FILTER u.user_name == @user_name\n" +
+                    "RETURN u";
+            Map<String, Object> bindVars = Collections.singletonMap("user_name",userName);
+            ArangoCursor<BaseDocument> cursor = db.query(query, bindVars, null, BaseDocument.class);
+            cursor.forEachRemaining(aDocument -> {
+                //System.out.println("Key: " + aDocument.getProperties().get("user_name"));
+                user[0] = new User(aDocument.getProperties().get("user_name").toString());
+            });
+        } catch (ArangoDBException e) {
+            System.err.println("Failed to execute query. " + e.getMessage());
+        }
+        return user[0];
     }
 
     @Override
     public Role getRoleByName(String roleName) throws Exception {
-        return null;
+        final Role[] role = {null};
+        try {
+            String query = "FOR r IN role\n" +
+                    "FILTER r.role_name == @role_name\n" +
+                    "RETURN r";
+            Map<String, Object> bindVars = Collections.singletonMap("role_name",roleName);
+            ArangoCursor<BaseDocument> cursor = db.query(query, bindVars, null, BaseDocument.class);
+            cursor.forEachRemaining(aDocument -> {
+                //System.out.println("Key: " + aDocument.getProperties().get("user_name"));
+                role[0] = new Role(roleType.valueOf(aDocument.getProperties().get("role_name").toString()));
+            });
+        } catch (ArangoDBException e) {
+            System.err.println("Failed to execute query. " + e.getMessage());
+        }
+        return role[0];
     }
 
     @Override
     public List<User> getAllUsers() throws Exception {
-        return null;
+        final List<User> users = new ArrayList<>();
+        try {
+            String query = "FOR u IN user\n" +
+                            "RETURN u";
+            //Map<String, Object> bindVars = Collections.singletonMap();
+            ArangoCursor<BaseDocument> cursor = db.query(query, null, null, BaseDocument.class);
+            cursor.forEachRemaining(aDocument -> {
+                //System.out.println("Key: " + aDocument.getProperties().get("user_name"));
+                 users.add(new User(aDocument.getProperties().get("user_name").toString()));
+            });
+        } catch (ArangoDBException e) {
+            System.err.println("Failed to execute query. " + e.getMessage());
+        }
+        return users;
     }
 
     @Override
     public List<Role> getAllRoles() throws Exception {
-        return null;
+        final List<Role> roles = new ArrayList<>();
+        try {
+            String query = "FOR r IN role\n" +
+                            "RETURN r";
+            //Map<String, Object> bindVars = Collections.singletonMap("user_name",userName);
+            ArangoCursor<BaseDocument> cursor = db.query(query, null, null, BaseDocument.class);
+            cursor.forEachRemaining(aDocument -> {
+                //System.out.println("Key: " + aDocument.getProperties().get("user_name"));
+                roles.add(new Role(roleType.valueOf(aDocument.getProperties().get("role_name").toString())));
+            });
+        } catch (ArangoDBException e) {
+            System.err.println("Failed to execute query. " + e.getMessage());
+        }
+        return roles;
     }
 
     @Override
     public List<User> getUsersWithRole(Role role) throws Exception {
+        //TODO
         return null;
     }
 
     @Override
     public List<Role> getUserRoles(User user) throws Exception {
+        //TODO
         return null;
     }
 
@@ -171,7 +227,28 @@ public class IAMServiceArango implements IAMService, AutoCloseable{
         arangoDB.shutdown();
     }
 
-    private String getUserRoleId(){
+    private String getUserRoleKey(String userName, String roleName){
+        List<String> relIds = new ArrayList<>();
+        try {
+            String query = "FOR rel IN IS_MEMBER_OF\n" +
+                    "    FOR u IN user\n" +
+                    "        FOR r IN role\n" +
+                    "            FILTER u._key == @user_name AND r._key == @role_name\n" +
+                    "            AND rel._from == u._id AND rel._to == r._id\n" +
+                    "            RETURN rel";
+            Map<String, Object> bindVars = new HashMap<>();
+            bindVars.put("user_name",userName.toLowerCase());
+            bindVars.put("role_name",roleName.toLowerCase());
+            ArangoCursor<BaseDocument> cursor = db.query(query, bindVars, null, BaseDocument.class);
+            cursor.forEachRemaining(aDocument -> {
+                relIds.add(aDocument.getKey());
+            });
+        } catch (ArangoDBException e) {
+            System.err.println("Failed to execute query. " + e.getMessage());
+        }
+        if (relIds.size() > 0){
+            return relIds.get(0);
+        }
         return "";
     }
 }
