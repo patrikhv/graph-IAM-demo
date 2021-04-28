@@ -18,6 +18,7 @@ public class MainAra {
             iamService.removeUser(new User("Igor"));
             iamService.removeRole(new Role(roleType.SUPERVISOR));
             iamService.denyRole(new User("Patrik"), new Role(roleType.STUDENT));
+            User test = iamService.getUserByName("Patrik");
 
             iamService.getAllUsers().forEach(user -> System.out.println(user.toString()));
             iamService.getAllRoles().forEach(role -> System.out.println(role.toString()));
