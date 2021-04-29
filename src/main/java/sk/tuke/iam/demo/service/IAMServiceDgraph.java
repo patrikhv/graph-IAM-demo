@@ -30,10 +30,18 @@ public class IAMServiceDgraph implements IAMService, AutoCloseable{
     }
 
     private void setSchema(){
-        String schema = "userName: string @index(term) .\n" +
-                        "roleName: string @index(term) .\n" +
-                        "\ntype User {\nuserName\n}\n" +
-                        "\ntype Role {\nroleName\n}\n";
+        String schema = """
+                userName: string @index(term) .
+                roleName: string @index(term) .
+
+                type User {
+                userName
+                }
+
+                type Role {
+                roleName
+                }
+                """;
         Operation operation = Operation.newBuilder().setSchema(schema).build();
         dgraphClient.alter(operation);
 
@@ -47,7 +55,7 @@ public class IAMServiceDgraph implements IAMService, AutoCloseable{
             Gson gson = new Gson();
             String json = gson.toJson(user);
             Mutation mutation =
-                    Mutation.newBuilder().setSetJson(ByteString.copyFromUtf8(json.toString())).build();
+                    Mutation.newBuilder().setSetJson(ByteString.copyFromUtf8(json)).build();
             txn.mutate(mutation);
             txn.commit();
         } catch (TxnConflictException ex) {
@@ -65,7 +73,7 @@ public class IAMServiceDgraph implements IAMService, AutoCloseable{
             Gson gson = new Gson();
             String json = gson.toJson(role);
             Mutation mutation =
-                    Mutation.newBuilder().setSetJson(ByteString.copyFromUtf8(json.toString())).build();
+                    Mutation.newBuilder().setSetJson(ByteString.copyFromUtf8(json)).build();
             txn.mutate(mutation);
             txn.commit();
         } catch (TxnConflictException ex) {

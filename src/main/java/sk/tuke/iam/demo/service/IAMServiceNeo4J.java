@@ -4,7 +4,7 @@ import org.neo4j.driver.*;
 import org.neo4j.driver.Record;
 import sk.tuke.iam.demo.entity.Role;
 import sk.tuke.iam.demo.entity.User;
-import sk.tuke.iam.demo.entity.roleType;
+import sk.tuke.iam.demo.entity.RoleType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -94,7 +94,7 @@ public class IAMServiceNeo4J implements IAMService, AutoCloseable{
 
     @Override
     public User getUserByName(String userName) throws Exception{
-        Record record = null;
+        Record record;
         try (Session session = driver.session()) {
             record = session.readTransaction(transaction -> {
                 Result result =  transaction.run("MATCH (u:User {user_name:$user_name})" +
@@ -112,7 +112,7 @@ public class IAMServiceNeo4J implements IAMService, AutoCloseable{
 
     @Override
     public Role getRoleByName(String roleName) throws Exception{
-        Record record = null;
+        Record record;
         try (Session session = driver.session()) {
             record = session.readTransaction(transaction -> {
                 Result result =  transaction.run("MATCH (r:Role {role_name:$role_name})" +
@@ -123,14 +123,14 @@ public class IAMServiceNeo4J implements IAMService, AutoCloseable{
 
         }
         if (record != null){
-            return new Role(roleType.valueOf(record.get("r.role_name").asString()));
+            return new Role(RoleType.valueOf(record.get("r.role_name").asString()));
         }
         return null;
     }
 
     @Override
     public List<User> getAllUsers() throws Exception{
-        List<Record> record = null;
+        List<Record> record;
         List<User> usersList = new ArrayList<>();
         try (Session session = driver.session()) {
             record = session.readTransaction(transaction -> {
@@ -150,7 +150,7 @@ public class IAMServiceNeo4J implements IAMService, AutoCloseable{
 
     @Override
     public List<Role> getAllRoles() throws Exception{
-        List<Record> record = null;
+        List<Record> record;
         List<Role> rolesList = new ArrayList<>();
         try (Session session = driver.session()) {
             record = session.readTransaction(transaction -> {
@@ -162,7 +162,7 @@ public class IAMServiceNeo4J implements IAMService, AutoCloseable{
         }
         if (record != null){
             for (Record role : record){
-                rolesList.add(new Role(roleType.valueOf(role.get("role_name").asString())));
+                rolesList.add(new Role(RoleType.valueOf(role.get("role_name").asString())));
             }
         }
         return rolesList;

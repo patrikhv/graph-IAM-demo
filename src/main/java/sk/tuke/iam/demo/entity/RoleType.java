@@ -1,6 +1,6 @@
 package sk.tuke.iam.demo.entity;
 
-public enum roleType {
+public enum RoleType {
     STUDENT,
     SUPERVISOR,
     TEACHER,

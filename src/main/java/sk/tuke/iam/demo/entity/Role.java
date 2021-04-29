@@ -1,20 +1,18 @@
 package sk.tuke.iam.demo.entity;
 
-import java.util.Date;
-
 public class Role {
-    private roleType roleType;
+    private RoleType roleType;
 
 
-    public Role(roleType roleType) {
+    public Role(RoleType roleType) {
         this.roleType = roleType;
     }
 
-    public sk.tuke.iam.demo.entity.roleType getRoleType() {
+    public RoleType getRoleType() {
         return roleType;
     }
 
-    public void setRoleType(sk.tuke.iam.demo.entity.roleType roleType) {
+    public void setRoleType(RoleType roleType) {
         this.roleType = roleType;
     }
 
